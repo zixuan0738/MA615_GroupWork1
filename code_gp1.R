@@ -75,16 +75,17 @@ merge.data5 <- merge.data5[,-c(1:5)]
 merge.data5 <- cbind(TIME,merge.data5)
 
 ################################################################################
-data_89_99 <- rbind(merge.data1,merge.data2)
+data_87_99 <- rbind(merge.data1,merge.data2)
 data_00_06 <- rbind(merge.data3,merge.data4)
 data_07_19 <- merge.data5
 
-colnames(data_89_99)
+colnames(data_87_99)
 colnames(data_00_06)
 colnames(data_07_19)
 
-names(data_89_99)[names(data_89_99)=="BAR"]="PRES"
+names(data_87_99)[names(data_87_99)=="BAR"]="PRES"
 names(data_00_06)[names(data_00_06)=="BAR"]="PRES"
+
 
 TIDE <- rep(NA,nrow(data_87_99))
 data_87_99<-cbind(data_87_99,TIDE)
@@ -96,4 +97,5 @@ WD <- rep(NA,nrow(data_07_19))
 data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:14])
 data_07_19<-data_07_19[, colnames(data_07_19)[c(1,3,2,4:15)]]
 
+data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
 data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
