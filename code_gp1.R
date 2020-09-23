@@ -85,3 +85,15 @@ colnames(data_07_19)
 
 names(data_89_99)[names(data_89_99)=="BAR"]="PRES"
 names(data_00_06)[names(data_00_06)=="BAR"]="PRES"
+
+TIDE <- rep(NA,nrow(data_87_99))
+data_87_99<-cbind(data_87_99,TIDE)
+WDIR <- rep(NA,nrow(data_89_99))
+data_87_99<-cbind(data_87_99[,1:2],WDIR,data_87_99[,3:14])
+WDIR <- rep(NA,nrow(data_00_06))
+data_00_06<-cbind(data_00_06[,1:2],WDIR,data_00_06[,3:14])
+WD <- rep(NA,nrow(data_07_19))
+data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:14])
+data_07_19<-data_07_19[, colnames(data_07_19)[c(1,3,2,4:15)]]
+
+data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
