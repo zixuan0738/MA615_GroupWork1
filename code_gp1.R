@@ -98,4 +98,15 @@ data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:14])
 data_07_19<-data_07_19[, colnames(data_07_19)[c(1,3,2,4:15)]]
 
 data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
-data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
+
+str(data_87_19)
+
+for (i in 2:15){
+  data_87_19[,i] <- as.numeric(data_87_19[,i])
+  
+}
+str(data_87_19)
+
+data_87_19[data_87_19==99] <- NA
+data_87_19[data_87_19==999] <- NA
+data_87_19[data_87_19==9999] <- NA
