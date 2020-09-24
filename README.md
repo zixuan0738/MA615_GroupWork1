@@ -89,7 +89,7 @@ names(data_00_06)[names(data_00_06)=="BAR"]="PRES"
 
 TIDE <- rep(NA,nrow(data_87_99))
 data_87_99<-cbind(data_87_99,TIDE)
-WDIR <- rep(NA,nrow(data_89_99))
+WDIR <- rep(NA,nrow(data_87_99))
 data_87_99<-cbind(data_87_99[,1:2],WDIR,data_87_99[,3:14])
 WDIR <- rep(NA,nrow(data_00_06))
 data_00_06<-cbind(data_00_06[,1:2],WDIR,data_00_06[,3:14])
@@ -110,4 +110,5 @@ str(data_87_19)
 data_87_19[data_87_19==99] <- NA
 data_87_19[data_87_19==999] <- NA
 data_87_19[data_87_19==9999] <- NA
+
 
