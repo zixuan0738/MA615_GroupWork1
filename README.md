@@ -21,18 +21,22 @@ for (i in 2:12){
 }
 YY <- rep("19",nrow(merge.data1))
 mm <- rep("00",nrow(merge.data1))
-TIME <- str_c(YY,merge.data1$YY,merge.data1$MM,merge.data1$DD,merge.data1$hh,mm)
-TIME <- ymd_hm(TIME)
+DATE <- str_c(YY,merge.data1$YY,merge.data1$MM,merge.data1$DD)
+DATE <- ymd(DATE)
+TIME <- hms(min= as.numeric(mm),
+         hours = as.numeric(merge.data1$hh))
 merge.data1 <- merge.data1[,-c(1:4)]
-merge.data1 <- cbind(TIME,merge.data1)
+merge.data1 <- cbind(DATE,TIME,merge.data1)
 
 # 99
 merge.data2 <-read_table2(urls[13],col_names = TRUE)
 mm <- rep("00",nrow(merge.data2))
-TIME <- str_c(merge.data2$YYYY,merge.data2$MM,merge.data2$DD,merge.data2$hh,mm)
-TIME <- ymd_hm(TIME)
+DATE <- str_c(merge.data2$YYYY,merge.data2$MM,merge.data2$DD)
+DATE <- ymd(DATE)
+TIME <- hms(min= as.numeric(mm),
+         hours = as.numeric(merge.data2$hh))
 merge.data2 <- merge.data2[,-c(1:4)]
-merge.data2 <- cbind(TIME,merge.data2)
+merge.data2 <- cbind(DATE,TIME,merge.data2)
 
 # 00-04
 merge.data3 <-read_table2(urls[14],col_names = TRUE)
@@ -41,10 +45,14 @@ for (i in 15:18){
   merge.data3 <- rbind(merge.data3,new.data)
 }
 mm <- rep("00",nrow(merge.data3))
-TIME <- str_c(merge.data3$YYYY,merge.data3$MM,merge.data3$DD,merge.data3$hh,mm)
-TIME <- ymd_hm(TIME)
+
+DATE <- str_c(merge.data3$YYYY,merge.data3$MM,merge.data3$DD)
+DATE <- ymd(DATE)
+TIME <- hms(min= as.numeric(mm),
+         hours = as.numeric(merge.data3$hh))
+
 merge.data3 <- merge.data3[,-c(1:4)]
-merge.data3 <- cbind(TIME,merge.data3)
+merge.data3 <- cbind(DATE,TIME,merge.data3)
 
 
 # 05-06
@@ -53,10 +61,14 @@ new.data <- read_table2(urls[20],col_names = TRUE)
 merge.data4 <- rbind(merge.data4,new.data)
 mm <- as.numeric(merge.data4$mm)
 mean(mm)
-TIME <- str_c(merge.data4$YYYY,merge.data4$MM,merge.data4$DD,merge.data4$hh,merge.data4$mm)
-TIME <- ymd_hm(TIME)
+
+DATE <- str_c(merge.data4$YYYY,merge.data4$MM,merge.data4$DD)
+DATE <- ymd(DATE)
+TIME <- hms(min= as.numeric(mm),
+         hours = as.numeric(merge.data4$hh))
+
 merge.data4 <- merge.data4[,-c(1:5)]
-merge.data4 <- cbind(TIME,merge.data4)
+merge.data4 <- cbind(DATE,TIME,merge.data4)
 
 
 # 07-19 
@@ -69,10 +81,14 @@ for (i in 22:33){
 }
 mm <- as.numeric(merge.data5$mm)
 mean(mm)
-TIME <- str_c(merge.data5$`#YY`,merge.data5$MM,merge.data5$DD,merge.data5$hh,merge.data5$mm)
-TIME <- ymd_hm(TIME)
+
+DATE <- str_c(merge.data5$`#YY`,merge.data5$MM,merge.data5$DD)
+DATE <- ymd(DATE)
+TIME <- hms(min= as.numeric(mm),
+         hours = as.numeric(merge.data5$hh))
+
 merge.data5 <- merge.data5[,-c(1:5)]
-merge.data5 <- cbind(TIME,merge.data5)
+merge.data5 <- cbind(DATE,TIME,merge.data5)
 
 ################################################################################
 data_87_99 <- rbind(merge.data1,merge.data2)
@@ -89,26 +105,40 @@ names(data_00_06)[names(data_00_06)=="BAR"]="PRES"
 
 TIDE <- rep(NA,nrow(data_87_99))
 data_87_99<-cbind(data_87_99,TIDE)
+
 WDIR <- rep(NA,nrow(data_87_99))
-data_87_99<-cbind(data_87_99[,1:2],WDIR,data_87_99[,3:14])
+data_87_99<-cbind(data_87_99[,1:3],WDIR,data_87_99[,4:15])
 WDIR <- rep(NA,nrow(data_00_06))
-data_00_06<-cbind(data_00_06[,1:2],WDIR,data_00_06[,3:14])
+data_00_06<-cbind(data_00_06[,1:3],WDIR,data_00_06[,4:15])
 WD <- rep(NA,nrow(data_07_19))
-data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:14])
-data_07_19<-data_07_19[, colnames(data_07_19)[c(1,3,2,4:15)]]
+data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:15])
+
 
 data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
 
 str(data_87_19)
 
-for (i in 2:15){
+for (i in 3:16){
 data_87_19[,i] <- as.numeric(data_87_19[,i])
 
 }
 str(data_87_19)
 
-data_87_19[data_87_19==99] <- NA
-data_87_19[data_87_19==999] <- NA
-data_87_19[data_87_19==9999] <- NA
 
+summary(data_87_19,na.rm = TRUE)
 
+data_87_19$WD[data_87_19$WD==999] <- NA
+data_87_19$WDIR[data_87_19$WDIR==999] <- NA
+data_87_19$WSPD[data_87_19$WSPD==99] <- NA
+data_87_19$GST[data_87_19$GST==99] <- NA
+data_87_19$WVHT[data_87_19$WVHT==99] <- NA
+data_87_19$DPD[data_87_19$DPD==99] <- NA
+data_87_19$APD[data_87_19$APD==99] <- NA
+data_87_19$MWD[data_87_19$MWD==999] <- NA
+data_87_19$PRES[data_87_19$PRES==9999] <- NA
+data_87_19$ATMP[data_87_19$ATMP==999] <- NA
+data_87_19$WTMP[data_87_19$WTMP==999] <- NA
+data_87_19$DEWP[data_87_19$DEWP==999] <- NA
+data_87_19$VIS[data_87_19$VIS==99] <- NA
+data_87_19$TIDE[data_87_19$TIDE==99] <- NA
+summary(data_87_19,na.rm = TRUE)
