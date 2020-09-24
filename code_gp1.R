@@ -23,7 +23,7 @@ YY <- rep("19",nrow(merge.data1))
 mm <- rep("00",nrow(merge.data1))
 DATE <- str_c(YY,merge.data1$YY,merge.data1$MM,merge.data1$DD)
 DATE <- ymd(DATE)
-TIME <- hms(min= as.numeric(mm),
+TIME <- hms::hms(min= as.numeric(mm),
             hours = as.numeric(merge.data1$hh))
 merge.data1 <- merge.data1[,-c(1:4)]
 merge.data1 <- cbind(DATE,TIME,merge.data1)
@@ -33,7 +33,7 @@ merge.data2 <-read_table2(urls[13],col_names = TRUE)
 mm <- rep("00",nrow(merge.data2))
 DATE <- str_c(merge.data2$YYYY,merge.data2$MM,merge.data2$DD)
 DATE <- ymd(DATE)
-TIME <- hms(min= as.numeric(mm),
+TIME <- hms::hms(min= as.numeric(mm),
             hours = as.numeric(merge.data2$hh))
 merge.data2 <- merge.data2[,-c(1:4)]
 merge.data2 <- cbind(DATE,TIME,merge.data2)
@@ -48,7 +48,7 @@ mm <- rep("00",nrow(merge.data3))
 
 DATE <- str_c(merge.data3$YYYY,merge.data3$MM,merge.data3$DD)
 DATE <- ymd(DATE)
-TIME <- hms(min= as.numeric(mm),
+TIME <- hms::hms(min= as.numeric(mm),
             hours = as.numeric(merge.data3$hh))
 
 merge.data3 <- merge.data3[,-c(1:4)]
@@ -64,7 +64,7 @@ mean(mm)
 
 DATE <- str_c(merge.data4$YYYY,merge.data4$MM,merge.data4$DD)
 DATE <- ymd(DATE)
-TIME <- hms(min= as.numeric(mm),
+TIME <- hms::hms(min= as.numeric(mm),
             hours = as.numeric(merge.data4$hh))
 
 merge.data4 <- merge.data4[,-c(1:5)]
@@ -84,7 +84,7 @@ mean(mm)
 
 DATE <- str_c(merge.data5$`#YY`,merge.data5$MM,merge.data5$DD)
 DATE <- ymd(DATE)
-TIME <- hms(min= as.numeric(mm),
+TIME <- hms::hms(min= as.numeric(mm),
             hours = as.numeric(merge.data5$hh))
 
 merge.data5 <- merge.data5[,-c(1:5)]
@@ -142,3 +142,4 @@ data_87_19$DEWP[data_87_19$DEWP==999] <- NA
 data_87_19$VIS[data_87_19$VIS==99] <- NA
 data_87_19$TIDE[data_87_19$TIDE==99] <- NA
 summary(data_87_19,na.rm = TRUE)
+
