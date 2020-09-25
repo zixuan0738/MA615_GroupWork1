@@ -1,0 +1,341 @@
+---
+title: "Boston Buoy Data Analysis"
+author:
+- Zixuan Liu (zliu203)
+- Chi Zhang (zc9714)
+- Jiaheng Li (jli305)
+- Haoyu Wang (haoywang)
+- Runqi Zhao (rickyz)
+date: "SEP 24th 2020"
+output:
+  html_document:
+    df_print: paged
+subtitle: MA 615 Team Project
+---
+
+```{r setup, include=FALSE}
+#reload all data
+rm(list = ls())
+```
+
+
+```{r, include = FALSE}
+# install and load packages
+pkg_list = c('ggplot2', 'tidyr', 'lubridate', 'tidyverse','naniar')
+to_install_pkgs = pkg_list[!(pkg_list %in% installed.packages()[,"Package"])]
+if(length(to_install_pkgs)) {
+  install.packages(to_install_pkgs, repos = "https://cloud.r-project.org")
+}
+sapply(pkg_list, require, character.only = TRUE)
+
+# Sets default chunk options
+knitr::opts_chunk$set(
+  fig.align = "center", 
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  cache = TRUE,
+  error = TRUE
+)
+
+```
+
+# 1. Introduction
+
+## 1.1 Background Research and Project Aims
+
+
+### 1.2.1 Variables
+There are total 19 variables. The first 13 independent variables in this project is
+
+###### "WDIR"- Wind Direction (WDIR): WNW ( 300 deg true )
+###### "WSPD"-Wind Speed (WSPD): 9.7 kts
+###### "GST"- Wind Gust (GST): 11.7 kts
+###### "WVHT"- Wave Height (WVHT): 3.6 ft
+###### "DPD"- Dominant Wave Period Dominant Wave Period (DPD): 13 sec
+###### "APD"- Average Period Average Period (APD): 6.8 sec
+###### "MWD"- Mean Wave Direction Mean Wave Direction (MWD): E ( 84 deg true )
+###### "PRES"- Atmospheric Pressure Atmospheric Pressure (PRES): 29.71 in
+###### "WTMP"- Water Temperature Water Temperature (WTMP): 61.3 °F
+###### "DEWP"- Dew Point Dew Point (DEWP): 55.8 °F
+###### "VIS- Visibility
+###### "TIDE"- Tide
+
+The dependent variable in this project is 
+
+###### "ATMP"- Air Temperature Air Temperature (ATMP): 67.5 °F
+
+### 1.2.2 10 Observations 
+
+
+We found out that this dataset contain a huge amount of data, total of 276411 rows. We first separate the raw data to 5 smaller one which contain same column within each set. then convert 'YY', 'MM', 'DD' to a single variable called 'DATE', and 'HH', 'mm' to 'TIME'.
+The head six observations are listed below:  
+
+
+```{r readin_top10}
+url1 <- "https://www.ndbc.noaa.gov/view_text_file.php?filename=44013h"
+url2 <- ".txt.gz&dir=data/historical/stdmet/"
+
+years <- c(1987:2019)
+
+urls <- str_c(url1, years, url2, sep = "")
+
+filenames <- str_c("mr", years,sep ="")
+
+#### read table
+# 87-98
+merge.data1 <-read_table2(urls[1],col_names = TRUE)
+for (i in 2:12){
+  new.data <- read_table2(urls[i],col_names = TRUE)
+  merge.data1 <- rbind(merge.data1,new.data)
+}
+YY <- rep("19",nrow(merge.data1))
+mm <- rep("00",nrow(merge.data1))
+DATE <- str_c(YY,merge.data1$YY,merge.data1$MM,merge.data1$DD)
+DATE <- ymd(DATE)
+TIME <- hms::hms(min= as.numeric(mm),
+            hours = as.numeric(merge.data1$hh))
+merge.data1 <- merge.data1[,-c(1:4)]
+merge.data1 <- cbind(DATE,TIME,merge.data1)
+
+# 99
+merge.data2 <-read_table2(urls[13],col_names = TRUE)
+mm <- rep("00",nrow(merge.data2))
+DATE <- str_c(merge.data2$YYYY,merge.data2$MM,merge.data2$DD)
+DATE <- ymd(DATE)
+TIME <- hms::hms(min= as.numeric(mm),
+            hours = as.numeric(merge.data2$hh))
+merge.data2 <- merge.data2[,-c(1:4)]
+merge.data2 <- cbind(DATE,TIME,merge.data2)
+
+# 00-04
+merge.data3 <-read_table2(urls[14],col_names = TRUE)
+for (i in 15:18){
+  new.data <- read_table2(urls[i],col_names = TRUE)
+  merge.data3 <- rbind(merge.data3,new.data)
+}
+mm <- rep("00",nrow(merge.data3))
+
+DATE <- str_c(merge.data3$YYYY,merge.data3$MM,merge.data3$DD)
+DATE <- ymd(DATE)
+TIME <- hms::hms(min= as.numeric(mm),
+            hours = as.numeric(merge.data3$hh))
+
+merge.data3 <- merge.data3[,-c(1:4)]
+merge.data3 <- cbind(DATE,TIME,merge.data3)
+
+
+# 05-06
+merge.data4 <-read_table2(urls[19],col_names = TRUE)
+new.data <- read_table2(urls[20],col_names = TRUE)
+merge.data4 <- rbind(merge.data4,new.data)
+mm <- as.numeric(merge.data4$mm)
+#mean(mm)
+
+DATE <- str_c(merge.data4$YYYY,merge.data4$MM,merge.data4$DD)
+DATE <- ymd(DATE)
+TIME <- hms::hms(min= as.numeric(mm),
+            hours = as.numeric(merge.data4$hh))
+
+merge.data4 <- merge.data4[,-c(1:5)]
+merge.data4 <- cbind(DATE,TIME,merge.data4)
+
+
+# 07-19 
+merge.data5 <-read_table2(urls[21],col_names = TRUE)
+merge.data5 <- merge.data5[-1,]
+for (i in 22:33){
+  new.data <- read_table2(urls[i],col_names = TRUE)
+  new.data <- new.data[-1,]
+  merge.data5 <- rbind(merge.data5,new.data)
+}
+mm <- as.numeric(merge.data5$mm)
+#mean(mm)
+
+DATE <- str_c(merge.data5$`#YY`,merge.data5$MM,merge.data5$DD)
+DATE <- ymd(DATE)
+TIME <- hms::hms(min= as.numeric(mm),
+            hours = as.numeric(merge.data5$hh))
+
+merge.data5 <- merge.data5[,-c(1:5)]
+merge.data5 <- cbind(DATE,TIME,merge.data5)
+
+
+head(merge.data1)
+head(merge.data2)
+head(merge.data3)
+head(merge.data4)
+head(merge.data5)
+
+```
+
+
+# 2. Summary Statistics and Data Visualization
+
+## 2.1 Missing Values & Data Preprocessing
+
+### 2.1.1 Missing Values
+
+First We conduct basic data preprocessing. Missing values for dataset are shown in the histogram below. 
+
+
+```{r}
+
+data_87_99 <- rbind(merge.data1,merge.data2)
+data_00_06 <- rbind(merge.data3,merge.data4)
+data_07_19 <- merge.data5
+
+#colnames(data_87_99)
+#colnames(data_00_06)
+#colnames(data_07_19)
+
+names(data_87_99)[names(data_87_99)=="BAR"]="PRES"
+names(data_00_06)[names(data_00_06)=="BAR"]="PRES"
+
+
+TIDE <- rep(NA,nrow(data_87_99))
+data_87_99<-cbind(data_87_99,TIDE)
+
+WDIR <- rep(NA,nrow(data_87_99))
+data_87_99<-cbind(data_87_99[,1:3],WDIR,data_87_99[,4:15])
+WDIR <- rep(NA,nrow(data_00_06))
+data_00_06<-cbind(data_00_06[,1:3],WDIR,data_00_06[,4:15])
+WD <- rep(NA,nrow(data_07_19))
+data_07_19<-cbind(data_07_19[,1:2],WD,data_07_19[,3:15])
+
+
+data_87_19 <- rbind(data_87_99,data_00_06,data_07_19)
+
+#str(data_87_19)
+
+for (i in 3:16){
+  data_87_19[,i] <- as.numeric(data_87_19[,i])
+  
+}
+#str(data_87_19)
+
+
+#summary(data_87_19,na.rm = TRUE)
+
+data_87_19$WD[data_87_19$WD==999] <- NA
+data_87_19$WDIR[data_87_19$WDIR==999] <- NA
+data_87_19$WSPD[data_87_19$WSPD==99] <- NA
+data_87_19$GST[data_87_19$GST==99] <- NA
+data_87_19$WVHT[data_87_19$WVHT==99] <- NA
+data_87_19$DPD[data_87_19$DPD==99] <- NA
+data_87_19$APD[data_87_19$APD==99] <- NA
+data_87_19$MWD[data_87_19$MWD==999] <- NA
+data_87_19$PRES[data_87_19$PRES==9999] <- NA
+data_87_19$ATMP[data_87_19$ATMP==999] <- NA
+data_87_19$WTMP[data_87_19$WTMP==999] <- NA
+data_87_19$DEWP[data_87_19$DEWP==999] <- NA
+data_87_19$VIS[data_87_19$VIS==99] <- NA
+data_87_19$TIDE[data_87_19$TIDE==99] <- NA
+summary(data_87_19,na.rm = TRUE)
+```
+
+```{r check_missings}
+data_87_19[data_87_19 == NA] = NA
+# observations contains NA
+num3 = complete.cases(data_87_19)
+missing = data.frame(data_87_19)
+#rownames(missing) = 'missing values'
+gg_miss_var(missing) + theme(text = element_text(size=7)) +
+  ylab('Number of Missing Values in Each Variable')
+```
+
+The plot above shows that TIDE has the highest missing value.
+
+
+### 2.1.2 Dealing With Missing Values
+Due to the large number of missing values in this dataset, we decided to delete those variables which has over 10,000 missing values, for those variables which has less than 10,000 missing values, we use variable means to replace missing values. The new dataset called data_87_19 which still contain 107,611 rows. 
+
+To simplify our model even more, We merge 24 row of hours into one day, that result to our final data 'final' and it has 11,576 rows.
+
+```{r replace_missing_values}
+tmpdata  <-  data_87_19[ , !names(data_87_19) %in% c("WD","WDIR","MWD","VIS","TIDE","DEWP")]
+asNumeric = function(x){
+ as.numeric(as.character(x))
+}
+factorsNumeric = function(d){
+  modifyList(d, lapply(d[, sapply(d, is.factor)],asNumeric))
+}
+tmpdata = factorsNumeric(tmpdata)
+for(i in 1:(ncol(tmpdata)-1)){
+  tmpdata[is.na(tmpdata[,i]), i] <- mean(tmpdata[,i], na.rm = TRUE)
+}
+
+```
+
+
+```{r}
+
+## tmpdata  <-  na.omit(tmpdata)
+planes <-  group_by(tmpdata, DATE)
+final  <-  summarise(planes, WSPD = mean(WSPD, na.rm = TRUE),
+                     GST = mean(GST, na.rm = TRUE), 
+                     WVHT = mean(WVHT, na.rm = TRUE), 
+                     DPD = mean(DPD, na.rm = TRUE),
+                     APD = mean(APD, na.rm = TRUE), 
+                     PRES = mean(PRES, na.rm = TRUE),
+                     ATMP = mean(ATMP, na.rm = TRUE), 
+                     WTMP = mean(WTMP, na.rm = TRUE))
+
+```
+
+
+###  2.1.2 Heatmap
+
+Shown in below is a correlation map for the year 1987 - year 2019 data that describes the relationship between the different features. 
+
+```{r heatmap}
+library(reshape2)
+#heatmap plot year3
+temp3 = final[2:8]
+cormat <- round(cor(temp3),2)
+melted_cormat <- melt(cormat)
+  # Get upper triangle of the correlation matrix
+  get_upper_tri <- function(cormat){
+    cormat[lower.tri(cormat)]<- NA
+    return(cormat)
+  }
+upper_tri <- get_upper_tri(cormat)
+# Melt the correlation matrix
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
+# Create a ggheatmap
+ggheatmap <- ggplot(melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+    name="Pearson\nCorrelation") +
+  theme_minimal()+ # minimal theme
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+    size = 12, hjust = 1))+
+ coord_fixed() + ggtitle("year 1987 - year 2019")
+# Print the heatmap
+ggheatmap + 
+theme(axis.text.x = element_text(size=4),
+      axis.text.y = element_text(size=4),
+  axis.title.x = element_blank(),
+  axis.title.y = element_blank(),
+  panel.grid.major = element_blank(),
+  panel.border = element_blank(),
+  panel.background = element_blank(),
+  axis.ticks = element_blank(),
+  legend.justification = c(1, 0),
+  legend.position = c(0.6, 0.7),
+  legend.direction = "horizontal")+
+  guides(fill = guide_colorbar(barwidth = 7, barheight = 1,
+                title.position = "top", title.hjust = 0.5)) +
+  scale_y_discrete(position = "right")
+```
+We can find that GST and ATMP have highest negative correlation, WSPD and GST have highest positive correlation.
+
+
+# 4. Conclusion
+
+## 4.1 Discussion
+
+## 4.2 Obstacles
+
+## 4.3 Conclusion
